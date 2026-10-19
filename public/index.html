@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Label Broadcast</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">LB</span>
+      <div>
+        <h1>Label Broadcast</h1>
+        <p>Send one DM to a whole contact group</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div id="conn" class="conn conn--starting">
+        <span class="dot"></span>
+        <span id="connText">Connecting…</span>
+      </div>
+      <button id="restartBtn" class="btn btn-ghost" title="Restart the WhatsApp connection">Restart</button>
+      <button id="logoutBtn" class="btn btn-ghost" title="Unlink this device and scan again">Unlink</button>
+    </div>
+  </header>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <main class="layout">
+    <section class="panel recipients">
+      <div class="panel-head">
+        <h2>1 · Recipients</h2>
+        <button id="clearBtn" class="btn btn-ghost btn-sm">Clear</button>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab is-active" data-tab="labels" role="tab">Groups</button>
+        <button class="tab" data-tab="contacts" role="tab">Contacts</button>
+        <button class="tab" data-tab="numbers" role="tab">Numbers</button>
+      </div>
+
+      <div id="tab-labels" class="tab-pane">
+        <p class="hint">Your WhatsApp contact groups (lists and labels). Click one to load and select everyone in it.</p>
+        <div id="labelList" class="label-grid">
+          <div class="empty">Loading labels…</div>
+        </div>
+      </div>
+
+      <div id="tab-contacts" class="tab-pane hidden">
+        <p class="hint">All contacts saved in your phone book.</p>
+        <button id="loadContactsBtn" class="btn btn-secondary btn-block">Load my contacts</button>
+      </div>
+
+      <div id="tab-numbers" class="tab-pane hidden">
+        <p class="hint">Paste numbers with country code, one per line. Names are optional: <code>+1 555 010 9999, Jane</code></p>
+        <textarea id="numbersInput" class="textarea textarea-sm" rows="5" placeholder="+15550109999, Jane&#10;+447700900123, Sam"></textarea>
+        <button id="addNumbersBtn" class="btn btn-secondary btn-block">Add numbers</button>
+        <div id="numbersFeedback" class="feedback hidden"></div>
+      </div>
+
+      <div class="list-tools">
+        <input id="search" class="input" type="search" placeholder="Search recipients…" />
+        <label class="checkline">
+          <input type="checkbox" id="selectAll" />
+          <span>Select all shown</span>
+        </label>
+      </div>
+
+      <ul id="contactList" class="contact-list"></ul>
+
+      <div class="list-foot">
+        <span id="selectedCount">0 selected</span>
+        <span id="sourceNote" class="muted"></span>
+      </div>
+    </section>
+
+    <section class="panel composer">
+      <div class="panel-head">
+        <h2>2 · Message</h2>
+        <span id="charCount" class="muted">0 characters</span>
+      </div>
+
+      <div class="mode-tabs" id="modeTabs" role="tablist">
+        <button class="mode-tab is-active" data-mode="compose" role="tab">Compose</button>
+        <button class="mode-tab" data-mode="forward" role="tab">Forward a message</button>
+      </div>
+
+      <div id="composePanel">
+        <textarea id="message" class="textarea" rows="9" placeholder="Hi {{name}}, quick update…"></textarea>
+
+        <div class="attach-row">
+          <button id="attachBtn" class="btn btn-ghost btn-sm" type="button">Attach a file</button>
+          <input id="fileInput" type="file" hidden />
+          <div id="fileChip" class="file-chip hidden">
+            <span id="fileChipName" class="file-chip-name"></span>
+            <span id="fileChipMeta" class="muted"></span>
+            <button id="fileRemove" class="chip-x" type="button" aria-label="Remove attachment">×</button>
+          </div>
+        </div>
+
+        <div class="tokens">
+          <button class="token" data-token="{{name}}" title="Replaced with each contact's name">+ Name</button>
+          <button class="token" data-token="{Hi|Hey|Hello}" title="Randomly picks one option per recipient">+ Random variant</button>
+        </div>
+        <p class="hint">
+          <code>{{name}}</code> becomes the recipient's name. <code>{a|b|c}</code> picks a random variant per person,
+          so messages don't look identical. Files are sent with your text as the caption.
+        </p>
+      </div>
+
+      <div id="forwardPanel" class="hidden">
+        <p class="hint">Pick a chat, then pick the message to forward to every selected recipient.</p>
+        <input id="sourceSearch" class="input" type="search" placeholder="Search chats…" />
+        <ul id="sourceList" class="source-list">
+          <li class="empty">Open this tab to load your chats.</li>
+        </ul>
+        <div id="sourceMessages" class="source-messages hidden">
+          <div class="source-head">
+            <strong id="sourceChatName"></strong>
+            <button id="backToChats" class="btn btn-ghost btn-sm" type="button">Change chat</button>
+          </div>
+          <ul id="messageList" class="message-list"></ul>
+        </div>
+      </div>
+
+      <div class="preview">
+        <div class="preview-head">
+          <span>Preview</span>
+          <span id="previewWho" class="muted">first recipient</span>
+        </div>
+        <div id="previewBody" class="preview-body">Your message will appear here.</div>
+      </div>
+
+      <div class="options">
+        <label class="field">
+          <span>Min delay (s)</span>
+          <input id="delayMin" class="input" type="number" min="3" max="300" value="12" />
+        </label>
+        <label class="field">
+          <span>Max delay (s)</span>
+          <input id="delayMax" class="input" type="number" min="3" max="600" value="25" />
+        </label>
+        <label class="checkline checkline--boxed">
+          <input type="checkbox" id="spin" checked />
+          <span>Randomize variants</span>
+        </label>
+        <label class="checkline checkline--boxed">
+          <input type="checkbox" id="dryRun" />
+          <span>Dry run (don't send)</span>
+        </label>
+      </div>
+
+      <button id="sendBtn" class="btn btn-primary btn-lg btn-block" disabled>Send to 0 people</button>
+      <p class="hint warn">
+        Auto-sending is against WhatsApp's Terms and can get your number banned. Use small batches,
+        long delays, and only message people who expect it.
+      </p>
+
+      <div id="progress" class="progress hidden">
+        <div class="progress-head">
+          <span id="progressTitle">Sending…</span>
+          <button id="cancelBtn" class="btn btn-ghost btn-sm">Cancel</button>
+        </div>
+        <div class="bar"><div id="barFill" class="bar-fill"></div></div>
+        <div id="progressStats" class="muted"></div>
+        <ul id="progressList" class="progress-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <div id="overlay" class="overlay hidden">
+    <div class="modal">
+      <h2 id="overlayTitle">Link your WhatsApp</h2>
+      <p id="overlayText" class="muted">Open WhatsApp on your phone → Settings → Linked devices → Link a device, then scan this code.</p>
+      <div class="qr-wrap">
+        <img id="qrImg" alt="WhatsApp QR code" />
+        <div id="qrSpinner" class="spinner"></div>
+      </div>
+      <div id="overlayError" class="feedback hidden"></div>
+      <button id="overlayRestart" class="btn btn-secondary btn-block">Restart connection</button>
+      <p class="hint center">Your session is stored locally in <code>data/session</code>. Nothing leaves your machine.</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

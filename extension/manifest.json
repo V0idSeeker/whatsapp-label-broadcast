@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Label Broadcast for WhatsApp",
+  "version": "1.0.0",
+  "description": "Send one message, file, or forwarded message to a WhatsApp contact group from a panel inside WhatsApp Web.",
+  "minimum_chrome_version": "111",
+  "host_permissions": ["https://web.whatsapp.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["vendor/wppconnect-wa.js", "styles.js", "app.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    }
+  ]
+}

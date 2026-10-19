@@ -1,0 +1,22 @@
+{
+  "name": "whatsapp-label-broadcast",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Send personalized WhatsApp DMs to a label or contact group, from a local server or a browser extension",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "build:extension": "node scripts/build-extension.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@wppconnect/wa-js": "^4.7.1",
+    "express": "^5.1.0",
+    "multer": "^2.4.0",
+    "playwright-core": "^1.64.1",
+    "qrcode": "^1.5.4"
+  }
+}
