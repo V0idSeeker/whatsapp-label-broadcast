@@ -32,6 +32,7 @@
     qrImg: $('#qrImg'),
     qrSpinner: $('#qrSpinner'),
     labelList: $('#labelList'),
+    refreshLabelsBtn: $('#refreshLabelsBtn'),
     contactList: $('#contactList'),
     selectedCount: $('#selectedCount'),
     sourceNote: $('#sourceNote'),
@@ -378,7 +379,7 @@
 
   /* ---------------- labels ---------------- */
 
-  async function loadLabels() {
+  async function loadLabels(attempt = 0) {
     els.labelList.textContent = '';
     const loading = document.createElement('div');
     loading.className = 'empty';
@@ -386,12 +387,22 @@
     els.labelList.appendChild(loading);
 
     try {
-      const { labels } = await api('/api/labels');
+      const { labels: all } = await api('/api/labels');
+      const labels = (all || []).filter((label) => label.count > 0);
       els.labelList.textContent = '';
       if (!labels.length) {
+        if (attempt < 12) {
+          const waiting = document.createElement('div');
+          waiting.className = 'empty';
+          waiting.textContent = 'Looking for your labels…';
+          els.labelList.appendChild(waiting);
+          setTimeout(() => loadLabels(attempt + 1), 4000);
+          return;
+        }
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = 'No contact groups found. Create lists or labels on your phone, or use Contacts / Numbers.';
+        empty.textContent =
+          'No labels with members found. Create a list in WhatsApp (Chats → Lists), then press Refresh.';
         els.labelList.appendChild(empty);
         return;
       }
@@ -915,8 +926,11 @@
       document.querySelectorAll('.tab-pane').forEach((p) => p.classList.add('hidden'));
       tab.classList.add('is-active');
       $(`#tab-${tab.dataset.tab}`).classList.remove('hidden');
+      if (tab.dataset.tab === 'labels') loadLabels();
     });
   });
+
+  if (els.refreshLabelsBtn) els.refreshLabelsBtn.addEventListener('click', () => loadLabels());
 
   els.modeTabs.addEventListener('click', (event) => {
     const tab = event.target.closest('.mode-tab');

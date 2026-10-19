@@ -35,13 +35,16 @@
       </div>
 
       <div class="tabs" role="tablist">
-        <button class="tab is-active" data-tab="labels" role="tab">Groups</button>
+        <button class="tab is-active" data-tab="labels" role="tab">Labels</button>
         <button class="tab" data-tab="contacts" role="tab">Contacts</button>
         <button class="tab" data-tab="numbers" role="tab">Numbers</button>
       </div>
 
       <div id="tab-labels" class="tab-pane">
-        <p class="hint">Your WhatsApp contact groups (lists and labels). Click one to load and select everyone in it.</p>
+        <div class="tab-tools">
+          <p class="hint">Your WhatsApp lists and labels. Click one to select everyone in it.</p>
+          <button id="refreshLabelsBtn" class="btn btn-ghost btn-sm">Refresh</button>
+        </div>
         <div id="labelList" class="label-grid">
           <div class="empty">Loading labels…</div>
         </div>

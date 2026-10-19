@@ -65,13 +65,16 @@
               </div>
 
               <div class="tabs" role="tablist">
-                <button class="tab is-active" data-tab="labels" role="tab" type="button">Groups</button>
+                <button class="tab is-active" data-tab="labels" role="tab" type="button">Labels</button>
                 <button class="tab" data-tab="contacts" role="tab" type="button">Contacts</button>
                 <button class="tab" data-tab="numbers" role="tab" type="button">Numbers</button>
               </div>
 
               <div id="tab-labels" class="tab-pane">
-                <p class="hint">Your WhatsApp contact groups (lists and labels). Click one to load and select everyone in it.</p>
+                <div class="tab-tools">
+                  <p class="hint">Your WhatsApp lists and labels. Click one to select everyone in it.</p>
+                  <button id="refreshLabelsBtn" class="btn btn-ghost btn-sm" type="button">Refresh</button>
+                </div>
                 <div id="labelList" class="label-grid">
                   <div class="empty">Loading labels…</div>
                 </div>
@@ -248,6 +251,7 @@
       connText: $('#connText'),
       banner: $('#banner'),
       labelList: $('#labelList'),
+      refreshLabelsBtn: $('#refreshLabelsBtn'),
       contactList: $('#contactList'),
       selectedCount: $('#selectedCount'),
       sourceNote: $('#sourceNote'),
@@ -607,7 +611,7 @@
     return count;
   }
 
-  async function loadLabels() {
+  async function loadLabels(attempt = 0) {
     if (!W) return;
     els.labelList.textContent = '';
 
@@ -667,15 +671,23 @@
       els.labelList.textContent = '';
 
       if (!visibleGroups.length) {
+        if (!lists.length && attempt < 12) {
+          const waiting = document.createElement('div');
+          waiting.className = 'empty';
+          waiting.textContent = 'Looking for your labels…';
+          els.labelList.appendChild(waiting);
+          setTimeout(() => loadLabels(attempt + 1), 4000);
+          return;
+        }
         const empty = document.createElement('div');
         empty.className = 'empty';
         empty.textContent =
-          'No contact groups with members found. Create a list on your phone, or use the Contacts and Numbers tabs.';
+          'No labels with members found. Create a list in WhatsApp Web (Chats → Lists), then press Refresh.';
         els.labelList.appendChild(empty);
         return;
       }
 
-      for (const group of groups) {
+      for (const group of visibleGroups) {
         const button = document.createElement('button');
         button.className = 'label-btn';
         button.type = 'button';
@@ -1440,8 +1452,11 @@
         wrap.querySelectorAll('.tab-pane').forEach((pane) => pane.classList.add('hidden'));
         tab.classList.add('is-active');
         wrap.querySelector(`#tab-${tab.dataset.tab}`).classList.remove('hidden');
+        if (tab.dataset.tab === 'labels' && state.ready) loadLabels();
       });
     });
+
+    if (els.refreshLabelsBtn) els.refreshLabelsBtn.addEventListener('click', () => loadLabels());
 
     els.modeTabs.addEventListener('click', (event) => {
       const tab = event.target.closest('.mode-tab');
